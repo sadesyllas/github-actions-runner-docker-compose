@@ -1,0 +1,18 @@
+x-github-actions-runner: &github-actions-runner
+  build:
+    context: ./build-context
+    args:
+      RUNNER_VERSION: "2.283.2"
+      USER_ID: "${USER_ID}"
+      GROUP_ID: "${GROUP_ID}"
+  restart: unless-stopped
+  image: local-github-actions-runner:latest
+  tty: true
+
+version: "3.9"
+services:
+  github-actions-runner:
+    <<: *github-actions-runner
+    env_file: .env
+    volumes:
+      - ./build:/home/actions/actions-runner/workspace/_build
