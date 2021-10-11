@@ -27,6 +27,15 @@ RUN groupadd -g ${DOCKER_GROUP_ID} docker-external
 RUN usermod -a -G docker,docker-external actions
 
 RUN \
+  echo \
+  "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" \
+  | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
+  curl https://packages.cloud.google.com/apt/doc/apt-key.gpg \
+  | apt-key --keyring /usr/share/keyrings/cloud.google.gpg  add - && \
+  apt-get update -y && \
+  apt-get install google-cloud-sdk -y
+
+RUN \
   LABEL="$(curl -s -X GET 'https://api.github.com/repos/actions/runner/releases/latest' | jq -r '.tag_name')" \
   RUNNER_VERSION="$(echo ${latest_version_label:1})" \
   cd /home/actions && mkdir actions-runner && cd actions-runner \
