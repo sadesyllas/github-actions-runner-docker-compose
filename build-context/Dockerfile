@@ -5,7 +5,8 @@ ARG USER_ID
 ARG GROUP_ID
 ARG DOCKER_GROUP_ID
 ARG TZ
-ARG PACKAGES
+
+ENV DEBIAN_FRONTEND="noninteractive"
 
 ENV TZ=${TZ}
 
@@ -16,13 +17,8 @@ RUN groupadd -g ${GROUP_ID} actions
 RUN useradd -m actions -u ${USER_ID} -g ${GROUP_ID}
 
 RUN \
-  test -n "${PACKAGES}" \
-  && apt-get -yqq update \
-  && DEBIAN_FRONTEND="noninteractive" apt-get -yqq install ${PACKAGES}
-
-RUN \
   apt-get -yqq update \
-  && DEBIAN_FRONTEND="noninteractive" apt-get -yqq install tzdata \
+  && apt-get -yqq install tzdata \
   && apt-get install -yqq git curl jq wget gpg lsb-release
 
 RUN \
@@ -39,6 +35,15 @@ RUN apt-get -yqq update && apt-get -yqq install docker-ce docker-ce-cli containe
 RUN groupadd -g ${DOCKER_GROUP_ID} docker-external
 
 RUN usermod -a -G docker,docker-external actions
+
+# Dependencies of Cypress.
+RUN \
+  apt-get -yqq update \
+  && apt-get install -yqq libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev \
+    libgconf-2-4 libnss3 libxss1 libasound2 libxtst6 xauth xvfb \
+  && wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
+  && apt install -yqq ./google-chrome-stable_current_amd64.deb \
+  && rm -f ./google-chrome-stable_current_amd64.deb
 
 RUN \
   echo \
