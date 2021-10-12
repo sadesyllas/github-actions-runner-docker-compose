@@ -1,9 +1,12 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 ARG RUNNER_VERSION
 ARG USER_ID
 ARG GROUP_ID
 ARG DOCKER_GROUP_ID
+ARG TZ
+
+ENV TZ=${TZ}
 
 ENV RUNNER_VERSION=${RUNNER_VERSION}
 
@@ -11,7 +14,9 @@ RUN groupadd -g ${GROUP_ID} actions
 
 RUN useradd -m actions -u ${USER_ID} -g ${GROUP_ID}
 
-RUN apt-get -yqq update && apt-get install -yqq curl jq wget gpg lsb-release
+RUN apt-get -yqq update \
+  && DEBIAN_FRONTEND="noninteractive" apt-get -yqq install tzdata \
+  && apt-get install -yqq git curl jq wget gpg lsb-release
 
 RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
   | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
