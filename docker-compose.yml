@@ -7,6 +7,7 @@ x-github-actions-runner: &github-actions-runner
       GROUP_ID: "${GROUP_ID}"
       DOCKER_GROUP_ID: "${DOCKER_GROUP_ID}"
       TZ: "${TZ:-Etc/UTC}"
+      PACKAGES: "${PACKAGES}"
   restart: unless-stopped
   image: local-github-actions-runner:latest
   tty: true

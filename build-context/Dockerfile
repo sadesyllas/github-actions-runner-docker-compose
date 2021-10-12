@@ -5,6 +5,7 @@ ARG USER_ID
 ARG GROUP_ID
 ARG DOCKER_GROUP_ID
 ARG TZ
+ARG PACKAGES
 
 ENV TZ=${TZ}
 
@@ -14,15 +15,23 @@ RUN groupadd -g ${GROUP_ID} actions
 
 RUN useradd -m actions -u ${USER_ID} -g ${GROUP_ID}
 
-RUN apt-get -yqq update \
+RUN \
+  test -n "${PACKAGES}" \
+  && apt-get -yqq update \
+  && DEBIAN_FRONTEND="noninteractive" apt-get -yqq install ${PACKAGES}
+
+RUN \
+  apt-get -yqq update \
   && DEBIAN_FRONTEND="noninteractive" apt-get -yqq install tzdata \
   && apt-get install -yqq git curl jq wget gpg lsb-release
 
-RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+RUN \
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
   | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 
-RUN echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
+RUN \
+  echo \
+    "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
   | tee /etc/apt/sources.list.d/docker.list > /dev/null
 
 RUN apt-get -yqq update && apt-get -yqq install docker-ce docker-ce-cli containerd.io
