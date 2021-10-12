@@ -1,0 +1,38 @@
+x-github-actions-runner: &github-actions-runner
+  build:
+    context: ./build-context
+    args:
+      DOCKER_GROUP_ID: "${DOCKER_GROUP_ID}"
+  restart: unless-stopped
+  image: local-github-actions-runner:latest
+  env_file: .env
+  tty: true
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "1m"
+      max-file: "1"
+
+services:
+  github-actions-runner-1:
+    <<: *github-actions-runner
+    environment:
+      RUNNER_NAME: "Runner 1"
+  github-actions-runner-2:
+    <<: *github-actions-runner
+    environment:
+      RUNNER_NAME: "Runner 2"
+  # github-actions-runner-3:
+  #   <<: *github-actions-runner
+  #   environment:
+  #     RUNNER_NAME: "Runner 3"
+  # github-actions-runner-4:
+  #   <<: *github-actions-runner
+  #   environment:
+  #     RUNNER_NAME: "Runner 4"
+  # github-actions-runner-5:
+  #   <<: *github-actions-runner
+  #   environment:
+  #     RUNNER_NAME: "Runner 5"
