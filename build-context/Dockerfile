@@ -24,7 +24,10 @@ RUN \
     "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
   | tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-RUN apt-get -yqq update && apt-get -yqq install docker-ce docker-ce-cli containerd.io
+RUN \
+  apt-get -yqq update \
+  && apt-get -yqq install docker-ce docker-ce-cli containerd.io \
+  && docker buildx install
 
 RUN groupadd -g ${DOCKER_GROUP_ID} docker-external
 
