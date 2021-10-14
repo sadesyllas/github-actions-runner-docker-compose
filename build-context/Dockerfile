@@ -1,12 +1,16 @@
 FROM ubuntu:20.04
 
-ARG DOCKER_GROUP_ID
+ARG DOCKER_GROUP_ID=""
+
+ARG DOCKER_HOST=""
 
 ENV DEBIAN_FRONTEND="noninteractive"
 
 ENV TZ="Etc/UTC"
 
 ENV RUNNER_VERSION="2.283.2"
+
+ENV DOCKER_HOST="${DOCKER_HOST}"
 
 RUN useradd -m actions
 
@@ -29,9 +33,14 @@ RUN \
   && apt-get -yqq install docker-ce docker-ce-cli containerd.io \
   && docker buildx install
 
-RUN groupadd -g ${DOCKER_GROUP_ID} docker-external
+RUN usermod -a -G docker actions
 
-RUN usermod -a -G docker,docker-external actions
+RUN \
+  ( \
+    test -n "${DOCKER_GROUP_ID}" \
+    && groupadd -g ${DOCKER_GROUP_ID} docker-external \
+    && usermod -a -G docker-external actions \
+  ) || true
 
 # Dependencies of Cypress.
 RUN \
@@ -43,24 +52,25 @@ RUN \
   && rm -f ./google-chrome-stable_current_amd64.deb
 
 RUN \
-  echo \
-  "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" \
-  | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
-  curl https://packages.cloud.google.com/apt/doc/apt-key.gpg \
-  | apt-key --keyring /usr/share/keyrings/cloud.google.gpg  add - && \
-  apt-get update -y && \
-  apt-get install google-cloud-sdk -y
+  echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" \
+    | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list \
+  && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg \
+    | apt-key --keyring /usr/share/keyrings/cloud.google.gpg  add - \
+  && apt-get update -yqq \
+  && apt-get install -yqq google-cloud-sdk
 
 RUN \
-  LABEL="$(curl -s -X GET 'https://api.github.com/repos/actions/runner/releases/latest' | jq -r '.tag_name')" \
-  cd /home/actions && mkdir actions-runner && cd actions-runner \
+  mkdir /home/actions/actions-runner \
+  && cd /home/actions/actions-runner \
   && wget https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz \
   && tar xzf ./actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz \
   && rm -rf ./actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz
 
 WORKDIR /home/actions/actions-runner
 
-RUN chown -R actions ~actions && /home/actions/actions-runner/bin/installdependencies.sh
+RUN \
+  chown -R actions ~actions \
+  && /home/actions/actions-runner/bin/installdependencies.sh
 
 USER actions
 
