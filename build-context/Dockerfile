@@ -14,26 +14,27 @@ ENV DOCKER_HOST="${DOCKER_HOST}"
 
 RUN useradd -m actions
 
+# Common tools
+
 RUN \
   apt-get -yqq update \
   && apt-get -yqq install tzdata \
-  && apt-get install -yqq git curl jq wget gpg lsb-release
+  && apt-get install -yqq git curl jq wget gpg lsb-release apt-transport-https ca-certificates
+
+# Docker
 
 RUN \
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
-  | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-
-RUN \
-  echo \
-    "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
-  | tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-RUN \
-  apt-get -yqq update \
+    | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
+  && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
+    | tee /etc/apt/sources.list.d/docker.list > /dev/null \
+  && apt-get -yqq update \
   && apt-get -yqq install docker-ce docker-ce-cli containerd.io \
   && docker buildx install
 
 RUN usermod -a -G docker actions
+
+# Kubernetes
 
 RUN \
   ( \
@@ -42,14 +43,14 @@ RUN \
     && usermod -a -G docker-external actions \
   ) || true
 
-# Dependencies of Cypress.
 RUN \
-  apt-get -yqq update \
-  && apt-get install -yqq libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev \
-    libgconf-2-4 libnss3 libxss1 libasound2 libxtst6 xauth xvfb \
-  && wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
-  && apt install -yqq ./google-chrome-stable_current_amd64.deb \
-  && rm -f ./google-chrome-stable_current_amd64.deb
+  curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg \
+  && echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" \
+    | tee /etc/apt/sources.list.d/kubernetes.list \
+  && apt-get -yqq update \
+  && apt-get install -yqq kubectl
+
+# Google Cloud SDK
 
 RUN \
   echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" \
@@ -58,6 +59,18 @@ RUN \
     | apt-key --keyring /usr/share/keyrings/cloud.google.gpg  add - \
   && apt-get update -yqq \
   && apt-get install -yqq google-cloud-sdk
+
+# Dependencies of Cypress
+
+RUN \
+  apt-get -yqq update \
+  && apt-get install -yqq libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev \
+    libgconf-2-4 libnss3 libxss1 libasound2 libxtst6 xauth xvfb \
+  && wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
+  && apt install -yqq ./google-chrome-stable_current_amd64.deb \
+  && rm -f ./google-chrome-stable_current_amd64.deb
+
+# GitHub actions runner
 
 RUN \
   mkdir /home/actions/actions-runner \
@@ -75,6 +88,8 @@ RUN \
 USER actions
 
 RUN mkdir /home/actions/actions-runner/workspace
+
+# Entrypoint
 
 COPY entrypoint.sh .
 
