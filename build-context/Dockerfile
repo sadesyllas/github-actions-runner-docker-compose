@@ -1,5 +1,9 @@
 FROM ubuntu:20.10
 
+ARG USER_ID
+
+ARG GROUP_ID
+
 ARG DOCKER_GROUP_ID=""
 
 ARG DOCKER_HOST=""
@@ -12,7 +16,9 @@ ENV RUNNER_VERSION="2.283.2"
 
 ENV DOCKER_HOST="${DOCKER_HOST}"
 
-RUN useradd -m actions
+RUN \
+  groupadd -g ${GROUP_ID} actions \
+  && useradd -m -u ${USER_ID} -g ${GROUP_ID} actions
 
 # Common tools
 

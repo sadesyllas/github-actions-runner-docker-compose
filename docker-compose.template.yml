@@ -13,6 +13,8 @@ x-github-actions-runner: &github-actions-runner
     context: ./build-context
     args:
       <<: *github-actions-runner-docker-socket-args
+      USER_ID: "${USER_ID}"
+      GROUP_ID: "${GROUP_ID}"
   restart: unless-stopped
   image: local-github-actions-runner:latest
   env_file: .env
