@@ -6,13 +6,18 @@ REGISTRATION_TOKEN=$(curl -s -X POST -H "authorization: token ${REPO_TOKEN}" "ht
 
 ./config.sh remove --token "${REGISTRATION_TOKEN}"
 
+if [[ -n "${LABELS}" ]]; then
+  LABELS="--labels ${LABELS}"
+fi
+
 ./config.sh \
   --url "https://github.com/${REPO_OWNER}/${REPO_NAME}" \
   --token "${REGISTRATION_TOKEN}" \
   --name "${RUNNER_NAME}" \
   --unattended \
   --work workspace \
-  --replace
+  --replace \
+  ${LABELS}
 
 ./bin/runsvc.sh
 
