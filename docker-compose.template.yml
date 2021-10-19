@@ -17,6 +17,7 @@ x-github-actions-runner: &github-actions-runner
       <<: *github-actions-runner-docker-socket-args
       USER_ID: "${USER_ID}"
       GROUP_ID: "${GROUP_ID}"
+  shm_size: "${SHM_SIZE:-64m}"
   restart: unless-stopped
   image: local-github-actions-runner:latest
   env_file: .env
