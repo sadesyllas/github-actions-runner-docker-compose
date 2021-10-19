@@ -8,6 +8,7 @@ x-github-actions-runner-docker-socket-volumes: &github-actions-runner-docker-soc
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
     - "${DOCKER_CONFIG_PATH}:/home/actions/.docker"
+    - "${GCLOUD_CONFIG_PATH}:/home/actions/.config/gcloud"
 
 x-github-actions-runner: &github-actions-runner
   build:

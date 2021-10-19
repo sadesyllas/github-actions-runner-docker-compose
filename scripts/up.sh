@@ -7,6 +7,7 @@ pushd "$(dirname "$0")/.."
   GROUP_ID=$(id -g) \
   DOCKER_GROUP_ID=$(stat -c %g /var/run/docker.sock) \
   DOCKER_CONFIG_PATH="$(readlink -f ~/.docker)" \
+  GCLOUD_CONFIG_PATH="$(readlink -f ~/.config/gcloud)" \
   docker-compose up "$@" --remove-orphans
 
 popd
