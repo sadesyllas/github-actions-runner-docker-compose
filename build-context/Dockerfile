@@ -18,7 +18,9 @@ ENV DOCKER_HOST="${DOCKER_HOST}"
 
 RUN \
   groupadd -g ${GROUP_ID} actions \
-  && useradd -m -u ${USER_ID} -g ${GROUP_ID} actions
+  && useradd -m -u ${USER_ID} -g ${GROUP_ID} actions \
+  && mkdir /home/actions/.config \
+  && chown actions:actions /home/actions/.config
 
 # Common tools
 
